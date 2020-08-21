@@ -1,0 +1,57 @@
+Before installing any role or doing anything, Open a CMD or PS as admin and run command 'NOTEPAD C:\WINDOWS\CAPOLICY.INF' and copy below content.
+
+[Version]
+Signature="$Windows NT$"
+[PolicyStatementExtension]
+Policies=InternalPolicy
+[InternalPolicy]
+OID=1.2.3.4.1455.67.89.5
+[Certsrv_Server]
+RenewalKeyLength=4096
+RenewalValidityPeriod=Years
+RenewalValidityPeriodUnits=10
+LoadDefaultTemplates=0
+
+################################################################
+Publish Root CA (AIA) Certifictae and CRL list in AD.
+
+certutil.exe -dsPublish -f "C:\Temp\OfflineRootCA_Certs\ROOTCA_OfflineROOTCA.crt" RootCA
+certutil.exe -dsPublish -f "C:\Temp\OfflineRootCA_Certs\OfflineROOTCA.crl" RootCA
+
+
+Add Root CA (AIA) certificate and CRL list into the local certifctae store. 
+
+certutil.exe -addstore -f root "C:\Temp\OfflineRootCA_Certs\ROOTCA_OfflineROOTCA.crt"
+certutil.exe -addstore -f root "C:\Temp\OfflineRootCA_Certs\OfflineROOTCA.crl"
+
+
+################################################################ INSTALL ADCS ROLE NOW before proceeding  ################################################################
+
+
+################################################################
+Configure certificate revocation and CA Validity Periods
+certutil -setreg CA\CRLPeriodUnits 1
+certutil -setreg CA\CRLPeriod "Weeks"
+certutil -setreg CA\CRLDeltaPeriodUnits 1
+certutil -setreg CA\CRLDeltaPeriod "Days"
+
+################################################################
+Define CRL Overlap Settings
+
+certutil.exe -setreg CA\CRLOverLapPeriodUnits 12
+certutil.exe -setreg CA\CRLOverLapPeriod "Weeks"
+
+################################################################
+This command will set the maximum certificate validity period of certificates issued by this CA
+
+certutil.exe -setreg CA\ValidityPeriodUnits 10
+################################################################
+Restarting the AD CS Services
+
+net stop certsvc
+net start certsvc
+################################################################
+Copy the file from C:\temp\offlinerootca_Certs to C:\Windows\System32\Certsrv\certifctae
+
+http://pki.home.com/certsrv
+
